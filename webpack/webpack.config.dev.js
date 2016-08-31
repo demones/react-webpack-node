@@ -1,21 +1,13 @@
-/* eslint-disable */
-
 import path from 'path';
 import webpack from 'webpack';
+//https://github.com/stylelint/stylelint/blob/master/docs/user-guide.md
 import styleLintPlugin from 'stylelint-webpack-plugin';
-// 用来解析下一代 css 语法 https://www.npmjs.com/package/postcss-cssnext
-// http://cssnext.io/
-import postcssCssnext from 'postcss-cssnext';
-// PostCSS plugin to add :focus selector to every :hover
-import postcssFocus from 'postcss-focus';
-// 用来打印 css 警告和错误信息
-import postcssReporter from 'postcss-reporter';
-//PostCSS plugin to import CSS files
-import postcssImprot from 'postcss-import';
+import precss from 'precss';
+import autoprefixer from 'autoprefixer';
 
 const appPath = path.join(__dirname, '..', 'client');
 const nodeModulesPath = path.join(__dirname, '..', 'node_modules');
-const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true';
+const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=5000&reload=true';
 
 const webpackConfig = {
   // eslint 配置
@@ -33,7 +25,7 @@ const webpackConfig = {
   resolve: {
     root: [appPath],  // 设置要加载模块根路径，该路径必须是绝对路径
     //自动扩展文件后缀名
-    extensions: ['', '.js', '.jsx', '.css', '.json'],
+    extensions: ['', '.js', '.jsx', '.css', '.scss', '.json'],
     alias: {} //设置别名
   },
   // 入口文件 让webpack用哪个文件作为项目的入口，可以设置多个
@@ -41,7 +33,7 @@ const webpackConfig = {
   // https://github.com/glenjamin/webpack-hot-middleware/blob/master/example/webpack.config.multientry.js
   entry: {
     //以 context 为基准
-    index: ['./client/index.js', hotMiddlewareScript]
+    index: ['./client/scripts/index.js', hotMiddlewareScript]
   },
 
   // 出口 让webpack把处理完成的文件放在哪里
@@ -85,7 +77,17 @@ const webpackConfig = {
       },
       {
         test: /\.css$/,
-        loader: 'style-loader!css-loader?modules&localIdentName=[name]__[local]__[hash:base64:5]&importLoaders=1&sourceMap!postcss-loader',
+        loader: 'style-loader!css-loader?modules&localIdentName=[name]__[local]__[hash:base64:5]&sourceMap!postcss-loader?pack=cleaner',
+      },
+      {
+        test: /\.scss$/,
+        loader: 'style-loader!css-loader?sourceMap!postcss-loader?pack=cleaner!sass-loader',
+        include: path.join(appPath, 'sass', 'components', 'react-animation.scss'),
+      },
+      {
+        test: /\.scss$/,
+        loader: 'style-loader!css-loader?modules&localIdentName=[name]__[local]__[hash:base64:5]&sourceMap!postcss-loader?pack=cleaner!sass-loader',
+        exclude: path.join(appPath, 'sass', 'components', 'react-animation.scss'),
       }
     ]
   },
@@ -93,31 +95,20 @@ const webpackConfig = {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
-    new webpack.DefinePlugin({
-      __DEVCLIENT__: true,
-      __DEVSERVER__: false
-    }),
     new styleLintPlugin({
       configFile: path.join(__dirname, '..', '.stylelintrc'),
-      context: path.join(__dirname, '..', 'app'),
-      files: '**!/!*.?(sa|sc|c)ss'
+      context: path.join(__dirname, '..', 'client', 'sass'),
+      files: '**!/!*.?scss'
     })
   ],
-  postcss: () => [
-    postcssFocus(),
-    //css 中使用 import
-    postcssImprot({
-      path: path.join(appPath, 'styles'),
-      addDependencyTo: webpack // for hot-reloading
-    }),
-    postcssCssnext({
-      browsers: ['> 1%', 'last 2 versions', 'Android >= 4.3', 'IOS >= 8']
-    }),
-    postcssReporter({
-      clearMessages: false,
-    }),
-  ],
+  postcss: () => {
+    return {
+      defaults: [precss, autoprefixer],
+      cleaner: [autoprefixer({browsers: ['last 2 version', 'chrome >=30', 'Android >= 4.3', 'IOS >= 8']})]
+    }
+  },
 };
+
 
 //这里不能用 es2015 export 写，因为 webpack-dev-middleware 不支持
 module.exports = webpackConfig;

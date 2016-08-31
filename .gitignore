@@ -2,7 +2,7 @@
 node_modules
 
 # 一些不需要提交的 js 文件
-client/config/index.js
-client/containers/Root.js
-client/store/index.js
+client/scripts/config/index.js
+client/scripts/containers/Root.js
+client/scripts/store/index.js
 

@@ -1,8 +1,9 @@
+import path from 'path';
 import express from 'express';
 import webpack from 'webpack'
-import path from 'path';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
+import session from 'express-session';
 import bodyParser from 'body-parser';
 import gzip from 'compression';
 import helmet from 'helmet';
@@ -12,14 +13,21 @@ import {renderToString} from 'react-dom/server'
 import {Provider} from 'react-redux'
 import {createMemoryHistory, match, RouterContext} from 'react-router'
 import {syncHistoryWithStore} from 'react-router-redux'
-import configureStore from '../client/store'
-import createRoutes from '../client/routes'
-import createSelectLocationState from '../client/routes/createSelectLocationState';
 
+import mongodb from './mongodb';
 import config from './config';
 import routes from './routes';
+import sessionStore from './session-store';
+
+import configureStore from '../client/scripts/store'
+import createRoutes from '../client/scripts/routes'
+import createSelectLocationState from '../client/scripts/routes/createSelectLocationState';
+import {IP, PORT} from '../client/scripts/config';
 
 const app = express();
+
+// 连接数据库
+mongodb();
 
 // 开发环境开启热部署
 if (config.env === 'development') {
@@ -47,10 +55,30 @@ if (config.env === 'production') {
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
-app.use(bodyParser.json({limit: '20mb'}));
+app.use(bodyParser.json({limit: '20mb'}));//设置前端post提交最大内容
 app.use(bodyParser.urlencoded({limit: '20mb', extended: false}));
-app.use(cookieParser());
+app.use(cookieParser(config.cookieSecret));
 app.use(express.static(path.resolve(__dirname, '../dist')));
+
+// 设置 session
+const store = sessionStore();
+// Populates req.session
+const sessionOptions = {
+  resave: false, // don't save session if unmodified
+  saveUninitialized: false, // don't create session until something stored
+  secret: config.sessionSecret, // session secret
+  proxy: true, // The "X-Forwarded-Proto" header will be used.
+  name: 'sessionId',
+  // Add HTTPOnly, Secure attributes on Session Cookie
+  // If secure is set, and you access your site over HTTP, the cookie will not be set
+  cookie: {
+    httpOnly: true,
+    secure: false,
+  },
+  store
+};
+
+app.use(session(sessionOptions));
 
 // load routers
 //定义路由
@@ -78,8 +106,8 @@ HTML.propTypes = {
 };
 
 app.use((req, res) => {
-  const memoryHistory = createMemoryHistory(req.url)
-  const store = configureStore(memoryHistory)
+  const memoryHistory = createMemoryHistory(req.url);
+  const store = configureStore(memoryHistory);
   const history = syncHistoryWithStore(memoryHistory, store, {
     selectLocationState: createSelectLocationState()
   });
@@ -103,6 +131,6 @@ app.use((req, res) => {
   })
 });
 
-app.listen(8080, () => {
-  console.log('Server listening on http://localhost:8080, Ctrl+C to stop')
+app.listen(PORT, IP, () => {
+  console.log(`Server listening on http://${IP}:${PORT}, Ctrl+C to stop`)
 });

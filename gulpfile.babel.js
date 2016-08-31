@@ -1,6 +1,7 @@
 import gulp from 'gulp';
 import gulpLoadPlugins from 'gulp-load-plugins';
 import opn from 'opn';
+import {IP, PORT} from './client/scripts/config';
 
 const $ = gulpLoadPlugins();
 
@@ -10,9 +11,9 @@ const $ = gulpLoadPlugins();
 //备选插件 https://www.npmjs.com/package/gulp-copy-rex
 gulp.task('copy:dev', () => {
   const paths = [
-    {src: 'client/config/index.dev.js', dest: 'client/config/index.js'},
-    {src: 'client/store/configureStore.dev.js', dest: 'client/store/index.js'},
-    {src: 'client/containers/Root.dev.js', dest: 'client/containers/Root.js'},
+    {src: 'client/scripts/config/index.dev.js', dest: 'client/scripts/config/index.js'},
+    {src: 'client/scripts/store/configureStore.dev.js', dest: 'client/scripts/store/index.js'},
+    {src: 'client/scripts/containers/Root.dev.js', dest: 'client/scripts/containers/Root.js'},
   ];
   return $.copy2(paths);
 });
@@ -38,13 +39,13 @@ gulp.task('clean', () => {
 gulp.task('server', ['copy:dev'], () => {
   $.nodemon({
     exec: 'npm run start',
-    watch: ['server'], // 设置监听的文件
+    watch: ['server', 'webpack/webpack.config.dev.js'], // 设置监听的文件
     verbose: false,
   });
 
   // Chrome is google chrome on OS X, google-chrome on Linux and chrome on Windows.
   // app 在 OS X 中是 google chrome, 在 Windows 为 chrome ,在 Linux 为 google-chrome
-  opn(port === 443 ? `https://${ip}/m-hongbao/` : `http://${ip}:${port}/m-hongbao/`, {app: 'google chrome'});
+  opn(`http://${IP}:${PORT}/`, {app: 'google chrome'});
 
   gulp.watch(['client/config/index.dev.js', 'client/containers/Root.dev.js', 'client/store/configureStore.dev.js'], ['copy:dev']);
 });

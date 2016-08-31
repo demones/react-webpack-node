@@ -1,8 +1,9 @@
-var express = require('express');
-var router = express.Router();
-var film = require('../controllers/film');
+import express from 'express';
+import filmController from '../controllers/film';
 
-router.post('/all', film.all);
-router.post('/popularity',film.popularity);
+const router = express.Router();
 
-module.exports = router;
+router.get('/all', filmController.all);
+router.get('/popularity',filmController.popularity);
+
+export default router;

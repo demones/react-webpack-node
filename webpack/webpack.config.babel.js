@@ -1,14 +1,6 @@
 import path from 'path';
-import webpack from 'webpack';
-// 用来解析下一代 css 语法 https://www.npmjs.com/package/postcss-cssnext
-// http://cssnext.io/
-import postcssCssnext from 'postcss-cssnext';
-// PostCSS plugin to add :focus selector to every :hover
-import postcssFocus from 'postcss-focus';
-// 用来打印 css 警告和错误信息
-import postcssReporter from 'postcss-reporter';
-//PostCSS plugin to import CSS files
-import postcssImprot from 'postcss-import';
+import precss from 'precss';
+import autoprefixer from 'autoprefixer';
 
 const appPath = path.join(__dirname, '..', 'client');
 
@@ -18,7 +10,7 @@ export default {
     libraryTarget: 'commonjs2',
   },
   resolve: {
-    extensions: ['', '.js', '.jsx', '.css'],
+    extensions: ['', '.js', '.jsx', '.css', '.scss'],
     modules: [
       'client',
       'node_modules',
@@ -28,27 +20,28 @@ export default {
     loaders: [
       {
         test: /\.css$/,
-        exclude: /node_modules/,
-        loader: 'style-loader!css-loader?modules&localIdentName=[name]__[local]__[hash:base64:5]&importLoaders=1&sourceMap!postcss-loader',
+        loader: 'style-loader!css-loader?modules&localIdentName=[name]__[local]__[hash:base64:5]&sourceMap!postcss-loader?pack=cleaner',
+      },
+      {
+        test: /\.scss$/,
+        loader: 'style-loader!css-loader?sourceMap!postcss-loader?pack=cleaner!sass-loader',
+        include: path.join(appPath, 'sass', 'components', 'react-animation.scss'),
+      },
+      {
+        test: /\.scss$/,
+        loader: 'style-loader!css-loader?modules&localIdentName=[name]__[local]__[hash:base64:5]&sourceMap!postcss-loader?pack=cleaner!sass-loader',
+        exclude: path.join(appPath, 'sass', 'components', 'react-animation.scss'),
       },
       {
         test: /\.jpe?g$|\.gif$|\.png$|\.svg$/i,
-        loader: 'url-loader?limit=10000',
+        loader: 'url-loader?limit=10000'
       },
     ],
   },
-  postcss: () => [
-    postcssFocus(),
-    //css 中使用 import
-    postcssImprot({
-      path: path.join(appPath, 'styles'),
-      addDependencyTo: webpack // for hot-reloading
-    }),
-    postcssCssnext({
-      browsers: ['> 1%', 'last 2 versions', 'Android >= 4.3', 'IOS >= 8']
-    }),
-    postcssReporter({
-      clearMessages: false,
-    }),
-  ],
+  postcss: () => {
+    return {
+      defaults: [precss, autoprefixer],
+      cleaner: [autoprefixer({browsers: ['last 2 version', 'chrome >=30', 'Android >= 4.3', 'IOS >= 8']})]
+    }
+  },
 };
