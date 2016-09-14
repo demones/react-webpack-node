@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import classNames from 'classnames/bind';
-import styles from '../../styles/components/scoreboard';
+import styles from '../../../sass/modules/vote/scoreboard';
 
 const cx = classNames.bind(styles);
 
@@ -8,8 +8,8 @@ const Scoreboard = ({topics}) => {
   const topicListItems = topics.map((topic, key) => {
     return (
     <li className={cx('item')} key={key}>
-      <span className={cx('topic')}>{topic.text}</span>
-      <span className={cx('count')}>{topic.count}</span>
+      <span className={cx('topic')}>{topic.get('content')}</span>
+      <span className={cx('count')}>{topic.get('count')}</span>
     </li>);
   });
   return (
@@ -23,7 +23,7 @@ const Scoreboard = ({topics}) => {
 };
 
 Scoreboard.propTypes = {
-  topics: PropTypes.array.isRequired
+  topics: PropTypes.object.isRequired
 };
 
 export default Scoreboard;

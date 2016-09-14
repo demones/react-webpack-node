@@ -8,11 +8,11 @@
 
 import fs from 'fs';
 export default (app, options) => {
-  fs.readdirSync(__dirname).forEach((name) => {
-    name = name.replace(/.js/, '');
-    if (name !== 'index') {
-      const obj = require('./' + name).default;
-      app.use('/api/' + name, obj);
+  fs.readdir(__dirname).forEach((name) => {
+    const _name = name.replace(/.js/, '');
+    if (_name !== 'index') {
+      const obj = require(`./${_name}`).default;
+      app.use(`/api/${_name}`, obj);
     }
   });
 };

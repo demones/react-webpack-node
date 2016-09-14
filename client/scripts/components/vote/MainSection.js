@@ -1,21 +1,20 @@
-import React, { PropTypes } from 'react';
+import React, {PropTypes} from 'react';
 import TopicItem from './TopicItem';
 import classNames from 'classnames/bind';
-import styles from '../../styles/components/main-section';
+import styles from '../../../sass/modules/vote/main-section';
 
 const cx = classNames.bind(styles);
 
-const MainSection = ({ topics, onIncrement, onDecrement, onDestroy }) => {
+const MainSection = ({topics, onIncrement, onDecrement, onDestroy}) => {
   const topicItems = topics.map((topic, key) => {
     return (
       <TopicItem
-        index={key}
-        id={topic.id}
-        key={key}
-        text={topic.text}
+        id={topic.get('id')}
+        key={topic.get('id')}
+        content={topic.get('content')}
         incrementCount={onIncrement}
         decrementCount={onDecrement}
-        destroyTopic={onDestroy} />);
+        destroyTopic={onDestroy}/>);
   });
 
   return (
@@ -27,7 +26,7 @@ const MainSection = ({ topics, onIncrement, onDecrement, onDestroy }) => {
 };
 
 MainSection.propTypes = {
-  topics: PropTypes.array.isRequired,
+  topics: PropTypes.object.isRequired,
   onIncrement: PropTypes.func.isRequired,
   onDecrement: PropTypes.func.isRequired,
   onDestroy: PropTypes.func.isRequired

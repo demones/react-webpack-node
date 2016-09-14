@@ -1,1 +1,23 @@
 @import "../components/loading";
+
+.no-items {
+  width: 8rem;
+  height: 8rem;
+  display: block;
+  margin: 0 auto;
+}
+
+.person-btn-group {
+  button + button {
+    margin-left: 1rem;
+  }
+}
+
+.link-group > a {
+  margin-right: 20px;
+  cursor: pointer;
+}
+
+.link-group > a:last-child {
+  margin-right: 0;
+}

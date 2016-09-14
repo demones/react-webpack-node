@@ -3,10 +3,15 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import classNames from 'classnames/bind';
 import bootstrap from '../../bootstrapCss';
 import filmStyle from '../../../sass/modules/film'
-import '../../../sass/components/react-animation';
 const cx = classNames.bind(filmStyle);
 
 class Film extends Component {
+  static propTypes = {
+    filmActions: PropTypes.object,
+    allFilmList: PropTypes.object,
+    popularityFilmList: PropTypes.object
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -15,36 +20,32 @@ class Film extends Component {
 
     this.name = '';
     this.animations = ['example-opacity', 'example-fade-in', 'example-burst-in'];
-    //带参数的绑定
-    this.switchTab = (type) => {
-      return ((e) => {
-        this._switchTab(type, e);
-      }).bind(this);
-    };
   }
 
   componentWillMount() {
     this.switchTab('all')();
   }
 
-  _switchTab(type, event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    const {
-      filmActions
-    } = this.props;
+  switchTab = (type) => {
+    return (event) => {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      const {
+        filmActions
+      } = this.props;
 
-    //切换之前先清空
-    filmActions.cleanFilmList(this.state.type);
+      //切换之前先清空
+      filmActions.cleanFilmList(this.state.type);
 
-    this.setState({
-      activeTab: type
-    });
+      this.setState({
+        activeTab: type
+      });
 
-    filmActions.getFilmList(type);
-  }
+      filmActions.getFilmList(type);
+    };
+  };
 
   renderList() {
     const {
@@ -95,6 +96,11 @@ class Film extends Component {
     }
     const transitionName = this.animations[index];
 
+    /**
+     * react 动画结合 css Module，解决的方法有两种，利用 :global 设置全局 css
+     * 指定 transitionName 为 对象 Object prop。详见
+     * https://github.com/css-modules/css-modules/issues/84
+     */
     return (
       <div className={bootstrap('container')}>
         <ul className={bootstrap('nav', 'nav-pills')}>
@@ -120,11 +126,5 @@ class Film extends Component {
     );
   }
 }
-
-Film.propTypes = {
-  filmActions: PropTypes.object,
-  allFilmList: PropTypes.object,
-  popularityFilmList: PropTypes.object
-};
 
 export default Film;

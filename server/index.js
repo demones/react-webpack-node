@@ -1,12 +1,13 @@
 import path from 'path';
 import express from 'express';
+import favicon from 'serve-favicon';
 import webpack from 'webpack'
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import gzip from 'compression';
-import helmet from 'helmet';
+import Helmet from 'react-helmet';
 import serialize from 'serialize-javascript'
 import React, {PropTypes} from 'react'
 import {renderToString} from 'react-dom/server'
@@ -31,12 +32,15 @@ mongodb();
 
 // 开发环境开启热部署
 if (config.env === 'development') {
-  const webpackDevConfig = require('../webpack/webpack.config.dev');
+  const webpackDevConfig = require('../webpack.config.dev.babel');
   const compiler = webpack(webpackDevConfig);
   app.use(require('webpack-dev-middleware')(compiler, {
-    noInfo: true,
+    //noInfo: true, //如果设置该参数为 true，则不打印输出信息
+    cache: true, //开启缓存，增量编译
+    debug: true, //开启 debug 模式
     stats: {
-      colors: true
+      colors: true, //打印日志显示颜色
+      reasons: true //打印相关被引入的模块
     },
     publicPath: webpackDevConfig.output.publicPath
   }));
@@ -44,16 +48,15 @@ if (config.env === 'development') {
   app.use(require('webpack-hot-middleware')(compiler));
 }
 
-
 // express setting
 if (config.env === 'production') {
   app.use(gzip());
-  // Secure your Express apps by setting various HTTP headers. Documentation: https://github.com/helmetjs/helmet
-  app.use(helmet());
+  app.use(favicon(path.join(__dirname, 'favicon.ico')));
+} else {
+  // uncomment after placing your favicon in /public
+  app.use(favicon(path.join(__dirname, '..', 'client', 'favicon.ico')));
 }
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json({limit: '20mb'}));//设置前端post提交最大内容
 app.use(bodyParser.urlencoded({limit: '20mb', extended: false}));
@@ -86,21 +89,39 @@ routes(app);
 
 //Render Initial HTML
 /*eslint-disable react/no-danger*/
-const HTML = ({content, store}) => {
-  let html = `window.__initialState__=${serialize(store.getState())};`;
+const Html = ({content, store}) => {
+  // Import Manifests
+  const assetsManifest = process.env.webpackAssets && JSON.parse(process.env.webpackAssets);
+  const scriptHtml = `window.__initialState__=${serialize(store ? store.getState() : {})};`;
+  const head = Helmet.rewind();
+  const headHtml = `
+      ${head.base.toString()}
+      ${head.title.toString()}
+      ${head.meta.toString()}
+      ${head.link.toString()}
+      ${head.script.toString()}
+
+      ${config.env === 'production' ? `<link rel='stylesheet' href='${assetsManifest['/index.bootstrap.css']}' />` : ''}
+      ${config.env === 'production' ? `<link rel='stylesheet' href='${assetsManifest['/index.css']}' />` : ''}
+   `;
+
   return (
     <html>
+    <head dangerouslySetInnerHTML={{ __html: headHtml }}/>
     <body>
     <div id="layout" dangerouslySetInnerHTML={{ __html: content }}/>
     <div id="devtools"/>
-    <script dangerouslySetInnerHTML={{ __html: html }}/>
-    <script src="/__build__/bundle.js"/>
+    <script dangerouslySetInnerHTML={{ __html: scriptHtml }}/>
+    {config.env === 'development' ? (<script src="/vendor.dll.js"/>) : (
+      <script src="/dev/vendor.js"/>
+    )}
+    <script src={config.env === 'production' ? assetsManifest['/index.js'] : '/dev/index.js'}/>
     </body>
     </html>
   )
 };
 
-HTML.propTypes = {
+Html.propTypes = {
   content: PropTypes.string,
   store: PropTypes.object
 };
@@ -116,7 +137,12 @@ app.use((req, res) => {
 
   match({history, routes, location: req.url}, (error, redirectLocation, renderProps) => {
     if (error) {
-      res.status(500).send(error.message)
+      const softTab = '&#32;&#32;&#32;&#32;';
+      const errTrace = process.env.NODE_ENV !== 'production'
+        ? `<br><br><pre style="color:red">${softTab}${error.stack.replace(/\n/g, `<br>${softTab}`)}</pre>`
+        : '';
+      res.status(500).send(renderToString(<Html content={`Server Error${errTrace}`}/>));
+
     } else if (redirectLocation) {
       res.redirect(302, redirectLocation.pathname + redirectLocation.search)
     } else if (renderProps) {
@@ -126,7 +152,7 @@ app.use((req, res) => {
         </Provider>
       );
       /*eslint-disable prefer-template,react/jsx-pascal-case*/
-      res.send('<!doctype html>\n' + renderToString(<HTML content={content} store={store}/>))
+      res.send('<!doctype html>\n' + renderToString(<Html content={content} store={store}/>))
     }
   })
 });

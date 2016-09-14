@@ -8,4 +8,6 @@ export const PERSON_CLEAN = 'PERSON_CLEAN';
 export const PERSON_UPDATE = 'PERSON_UPDATE';
 // 删除
 export const PERSON_DELETE = 'PERSON_DELETE';
+// 添加
+export const PERSON_ADD = 'PERSON_ADD';
 

@@ -1,5 +1,6 @@
+import moment from 'moment';
 import Person from '../models/Person';
-import DataPage from '../helper/DataPage';
+import Pagination from '../helper/Pagination';
 
 /**
  * 分页显示
@@ -8,31 +9,36 @@ import DataPage from '../helper/DataPage';
  * @method
  */
 export function paging(req, res) {
-  console.info(req);
-  const {pageSize, currentPage} = req.body;
+  const {currentPage} = req.query;
+  let {pageSize} = req.query;
+  const pagination = new Pagination({pageSize, currentPage});
+  pageSize = pagination.data.pageSize;
   const skip = pageSize * (currentPage - 1);
   const limit = pageSize;
-
-  const dataPage = new DataPage({pageSize, currentPage});
   const promise = Person.count({}).exec();
 
   promise.then((totalCount) => {
-    dataPage.setPageOptions({totalCount});
-    return Person.find({}, {
+    pagination.setOptions({totalCount});
+    return Person.find({},
+      {
         _id: 1,
         firstName: 1,
         lastName: 1,
-        remark: 1,
         createdDate: 1,
         updatedDate: 1,
       },
       {skip, limit, sort: {createdDate: -1}});
   }).then((items) => {
-    dataPage.setPageOptions({items});
-    return res.json(dataPage);
-  }).then(null, function (err) {
-    console.log('Error in first query');
-    return res.status(500).send('Something went wrong getting the data');
+    const _items = items.map((item) => {
+      item.createdDate = moment(item.createdDate).format('YYYY年MM月DD HH:mm:ss');
+      item.updatedDate = moment(item.updatedDate).format('YYYY年MM月DD HH:mm:ss');
+      return item;
+    });
+    pagination.setItems(_items);
+    return res.json(pagination);
+  }).then(null, (err) => {
+    pagination.setError({message: err.message});
+    return res.json(pagination);
   });
 }
 
@@ -40,42 +46,55 @@ export function paging(req, res) {
  * 增加或修改 Person
  */
 export function save(req, res) {
-  const {id} = req.body;
-  if (id) { //修改
-    const query = {id};
-    Person.findOneAndUpdate(query, req.body, (err) => {
+  const person = req.body;
+  const {_id} = person;
+  if (_id) { //修改
+    const query = {_id};
+    delete person.createdDate;
+    person.updatedDate = new Date();
+    Person.findOneAndUpdate(query, person, (err) => {
       if (err) {
-        console.log('Error on save!');
-        return res.status(500).send('We failed to save for some reason');
+        return res.json({
+          success: false,
+          message: err.message
+        });
       }
-
-      return res.status(200).send('Updated successfully');
+      return res.json({
+        success: true
+      });
     });
   } else { // 增加
-    Person.create(req.body, (err) => {
+    Person.create(person, (err, person) => {
       if (err) {
-        console.log(err);
-        return res.status(400).send(err);
+        return res.json({
+          success: false,
+          message: err.message
+        });
       }
 
-      return res.status(200).send('OK');
+      return res.json({
+        success: true,
+        data: person._doc
+      });
     });
   }
-
 }
 
 /**
  * Remove Person
  */
 export function remove(req, res) {
-  const {id} = req.body;
-  Person.findOneAndRemove({id}, (err) => {
+  const {_id} = req.body;
+  Person.findOneAndRemove({_id}, (err) => {
     if (err) {
-      console.log('Error on delete');
-      return res.status(500).send('We failed to delete for some reason');
+      return res.status(500).json({
+        success: false,
+        message: err.message
+      });
     }
-
-    return res.status(200).send('Removed Successfully');
+    return res.json({
+      success: true,
+    });
   });
 }
 

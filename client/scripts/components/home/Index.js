@@ -20,8 +20,9 @@ class Home extends Component {
   render() {
     return (
       <div className={cx('home')}>
-        <h1 className={bootstrap("m-t-3")}>react-webpack-node</h1>
-        <h2 className={bootstrap("m-t-3")}>React Redux Router Immutable Webpack Gulp Express Mongodb Sass Css Module etc.</h2>
+        <h1 className={bootstrap('m-t-3')}>react-webpack-node</h1>
+        <h2 className={bootstrap('m-t-3')}>
+          React Redux Router Immutable Webpack Gulp Express Mongodb Sass Css Module etc.</h2>
       </div>
     );
   }

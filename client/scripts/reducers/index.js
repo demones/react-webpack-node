@@ -1,8 +1,10 @@
 import {combineReducers} from 'redux-immutable';
 import routing from './routing';
 import {Map} from 'immutable';
+import cache from './cache';
 import person from './person';
 import film from './film';
+import vote from './vote';
 
 import {
   RESET_MESSAGE, SET_MESSAGE,
@@ -38,6 +40,8 @@ export default combineReducers({
   routing,
   message,
   toast,
+  cache,
   film,
-  person
+  person,
+  vote
 });

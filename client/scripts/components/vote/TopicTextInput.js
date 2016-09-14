@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react';
+import React, {Component, PropTypes} from 'react';
 const ENTER_KEY_CODE = 13;
 
 class TopicTextInput extends Component {
@@ -8,21 +8,17 @@ class TopicTextInput extends Component {
     this.onChange = this.onChange.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
   }
-  /*
-   * Invokes the callback passed in as onSave, allowing this component to be
-   * used in different ways. I personally think this makes it more reusable.
-   */
+
+  //保存
   onSave() {
-    const { onEntrySave, value } = this.props;
-    onEntrySave(value);
+    const {onEntrySave, newTopic} = this.props;
+
+    onEntrySave(newTopic.get('content'));
   }
 
-  /*
-   * Invokes the callback passed in as onSave, allowing this component to be
-   * used in different ways. I personally think this makes it more reusable.
-   */
+  // input change 时触发
   onChange(event) {
-    const { onEntryChange } = this.props;
+    const {onEntryChange} = this.props;
     onEntryChange(event.target.value);
   }
 
@@ -36,14 +32,15 @@ class TopicTextInput extends Component {
   }
 
   render() {
-    const { className, placeholder, value } = this.props;
+    const {className, placeholder, newTopic} = this.props;
+
     return (
       <input className={className}
-        placeholder={placeholder}
-        onChange={this.onChange}
-        onKeyDown={this.onKeyDown}
-        value={value}
-        autoFocus />
+             placeholder={placeholder}
+             onChange={this.onChange}
+             onKeyDown={this.onKeyDown}
+             value={newTopic.get('content')}
+             autoFocus/>
     );
   }
 }
@@ -51,7 +48,7 @@ class TopicTextInput extends Component {
 TopicTextInput.propTypes = {
   className: PropTypes.string,
   placeholder: PropTypes.string,
-  value: PropTypes.string,
+  newTopic: PropTypes.object,
   onEntrySave: PropTypes.func,
   onEntryChange: PropTypes.func
 };

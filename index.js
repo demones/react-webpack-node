@@ -3,7 +3,9 @@
  */
 
 if (process.env.NODE_ENV === 'production') {
-
+  process.env.webpackAssets = JSON.stringify(require('./dist/manifest.json'));
+  // In production, serve the webpacked server file.
+  require('./dist/server.bundle.js');
 } else {
   // Babel polyfill to convert ES6 code in runtime
   require('babel-register')({
@@ -11,7 +13,7 @@ if (process.env.NODE_ENV === 'production') {
       [
         'babel-plugin-webpack-loaders',
         {
-          config: './webpack/webpack.config.babel.js',
+          config: './webpack.config.babel.js',
           verbose: false
         }
       ]

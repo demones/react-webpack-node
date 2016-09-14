@@ -46,17 +46,18 @@ export function getFilmList(type) {
 //如果不传入 type 表示清空所有，否则根据传入的 type 来清空
 export function cleanFilmList(type) {
   const types = ['all', 'popularity'];
+
   return (dispatch, getState) => {
-    if (!type) {
+    if (type) {
+      dispatch({
+        type: FilmActionTypes[`${type.toUpperCase()}_FILM_CLEAN`]
+      });
+    } else {
       dispatch({
         type: ALL_FILM_CLEAN
       });
       dispatch({
         type: POPULARITY_FILM_CLEAN
-      });
-    } else {
-      dispatch({
-        type: FilmActionTypes[`${type.toUpperCase()}_FILM_CLEAN`]
       });
     }
   };

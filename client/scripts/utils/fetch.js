@@ -18,7 +18,7 @@ function checkStatus(response) {
   if (status >= 200 && status < 300) {
     return response;
   }
-  let error = new Error(response.statusText);
+  const error = new Error(response.statusText);
   error.response = response;
   error.errorCode = status;
   throw error;
@@ -34,12 +34,12 @@ function checkStatus(response) {
  */
 function callApi({url, body = {}, options = {}}) {
   if (!url) {
-    let error = new Error('请传入 url');
+    const error = new Error('请传入 url');
     error.errorCode = 0;
     return Promise.reject(error);
   }
 
-  let fullUrl;
+  let fullUrl = '';
   //如果是绝对路径，则直接发请求
   if (url.indexOf('http') === 0) {
     fullUrl = url;
@@ -47,7 +47,7 @@ function callApi({url, body = {}, options = {}}) {
     fullUrl = url.indexOf(SERVER_URL) === 0 ? url : SERVER_URL + url;
   }
 
-  let _options = {...defaultOptions, ...options};
+  const _options = {...defaultOptions, ...options};
 
   if (_options.method !== 'get' && _options.method !== 'head') {
     //数据为 null 不要传到后台
@@ -66,13 +66,11 @@ function callApi({url, body = {}, options = {}}) {
     ).then(({json, response}) => {
       if (!response.ok || !json.success) {
         // 根据后台实际返回数据来定义错误格式
-        let error = new Error(json.errorMsg || '获取数据出错');
-        error.json = json;
-        error.errorCode = json.code;
+        const error = new Error(json.message || '获取数据出错');
+        error.errorCode = json.errorCode;
         return Promise.reject(error, json);
       }
-
-      return {json};
+      return json;
     })
     .catch((error) => {
       return Promise.reject(error);

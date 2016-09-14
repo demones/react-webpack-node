@@ -1,22 +1,19 @@
-import React, {Component, PropTypes} from 'react';
+import React, {PropTypes} from 'react';
+import bootstrap from '../../bootstrapCss';
 
-class Index extends Component {
-  render() {
-    const {
-      children, location, personActions, person
-    } = this.props;
+const Index = ({children, location, personActions, person}) => {
 
-    return (
-      <div>
-        {children && React.cloneElement(children, {
-          key: location.pathname,
-          personActions,
-          person
-        })}
-      </div>
-    );
-  }
-}
+  return (
+    <div className={bootstrap('container', 'm-t-2')}>
+      {children && React.cloneElement(children, {
+        key: location.pathname,
+        personActions,
+        person
+      })}
+    </div>
+  );
+
+};
 
 Index.propTypes = {
   children: PropTypes.node,

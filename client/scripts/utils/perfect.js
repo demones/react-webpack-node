@@ -7,10 +7,10 @@ const perfect = {
   getLocationParams() {
     let search = location.search;
     if (search.length > 1) {
-      let params = {};
+      const params = {};
       search = search.substring(1);
       search.split('&').forEach((item) => {
-        let tempParam = item.split('=');
+        const tempParam = item.split('=');
         params[tempParam[0]] = tempParam[1] === '' ? null : decodeURIComponent(tempParam[1]);
       });
       return params;
@@ -50,7 +50,7 @@ const perfect = {
     if (!str) {
       return null;
     }
-    let json;
+    let json = null;
     try {
       json = JSON.parse(str);
     } catch (e) {
@@ -62,7 +62,7 @@ const perfect = {
 
   // 把 json 数据转换为字符串
   stringifyJSON (json) {
-    let str;
+    let str = null;
     try {
       str = JSON.stringify(json);
     } catch (e) {

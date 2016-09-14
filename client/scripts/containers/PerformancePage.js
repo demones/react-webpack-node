@@ -1,6 +1,12 @@
-import React, {Component} from 'react';
+import React, {Component, PropTypes} from 'react';
 
+/*eslint-disable react/no-multi-comp*/
 class NumberDiv extends Component {
+  static propTypes = {
+    number: PropTypes.number,
+    chosedNumber: PropTypes.number,
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -8,7 +14,14 @@ class NumberDiv extends Component {
     }
   }
 
+  /**
+   * 用 react-addons-perf 来分析性能
+   * Perf.start()
+   * Perf.stop()
+   * Perf.printInclusive()
+   */
   shouldComponentUpdate(nextProps) {
+    //通过判断是否需要重新渲染来提高性能
     return nextProps.render
   }
 
@@ -27,9 +40,11 @@ class NumberDiv extends Component {
       margin: '10px',
       backgroundColor: 'red',
     }
-    return <div style={this.props.chosedNumber === this.state.number ? chosedStyle : style}>
-      {this.state.number}
-    </div>
+    return (
+      <div style={this.props.chosedNumber === this.state.number ? chosedStyle : style}>
+        {this.state.number}
+      </div>
+    );
   }
 }
 
@@ -61,15 +76,16 @@ class ChooseNumber extends Component {
       marginBottom: '10px',
     }
     const children = [];
-    //render={i == this.state.inputNumber || i === this.state.lastNumber}
-    for (var i = 0; i < 10000; i++) {
+    for (let i = 0; i < 1000; i++) {
       children.push(<NumberDiv key={i} render={i === this.state.inputNumber || i === this.state.lastNumber}
-                               chosedNumber={this.state.inputNumber} number={i}></NumberDiv>)
+                               chosedNumber={this.state.inputNumber} number={i}/>)
     }
-    return <div style={{textAlign: 'text'}}>
-      <input type='text' style={inputStyle} placeholder='请输入一个数字' onChange={this.handleChange}/>
-      {children}
-    </div>;
+    return (
+      <div style={{textAlign: 'text'}}>
+        <input type="text" style={inputStyle} placeholder="请输入一个数字" onChange={this.handleChange}/>
+        {children}
+      </div>
+    );
   }
 }
 

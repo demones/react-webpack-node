@@ -15,8 +15,8 @@ export default store => next => action => {
     return next(action);
   }
 
-  let {url} = callAPI;
-  const {types, options, body} = callAPI;
+  //参数 clean 为 true 时，表示先清空数据，比如列表刷新时
+  const {url, types, options, body, clean} = callAPI;
 
   // 分别执行发送请求，成功或失败请求
   function actionWith(data) {
@@ -37,12 +37,13 @@ export default store => next => action => {
 
   // Fetch 一个请求，并返回结果
   return callApi({url, body, options}).then(
-    ({json}) => {
-      let {data} = json;
+    (json) => {
+      const {data} = json;
       //调用成功 action，并把结果数据返回
       return next(actionWith({
         data,
-        type: success
+        type: success,
+        clean
       }));
     },
     (error) => {

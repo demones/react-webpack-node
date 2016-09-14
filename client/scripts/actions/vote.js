@@ -1,157 +1,154 @@
-import md5 from 'spark-md5';
 import * as types from '../constants/VoteActionTypes';
+import callApi from '../utils/fetch';
 
-export function makeTopicRequest(method, id, data, api = '/topic') {
-  //return request[method](api + (id ? ('/' + id) : ''), data);
-}
-
-export function increment(id) {
-  return {type: types.INCREMENT_COUNT, id};
-}
-
-export function decrement(id) {
-  return {type: types.DECREMENT_COUNT, id};
-}
-
-export function destroy(id) {
-  return {type: types.DESTROY_TOPIC, id};
-}
-
-
-export function typing(text) {
+// 投票主题
+export function enterTopic(content) {
   return {
-    type: types.TYPING,
-    newTopic: text
+    type: types.ENTER_TOPIC,
+    newTopic: content
   };
 }
 
 /*
+ * 创建投票请求
  * @param data
- * @return a simple JS object
  */
-export function createTopicRequest(data) {
+function createTopicRequest() {
   return {
-    type: types.CREATE_TOPIC_REQUEST,
-    id: data.id,
-    count: data.count,
-    text: data.text
+    type: types.CREATE_TOPIC_REQUEST
   };
 }
 
-export function createTopicSuccess() {
+// 成功
+function createTopicSuccess(data) {
   return {
-    type: types.CREATE_TOPIC_SUCCESS
+    type: types.CREATE_TOPIC_SUCCESS,
+    data
   };
 }
 
-export function createTopicFailure(data) {
+// 失败
+function createTopicFailure(error) {
   return {
     type: types.CREATE_TOPIC_FAILURE,
-    id: data.id,
-    error: data.error
+    error
   };
 }
 
-export function createTopicDuplicate() {
-  return {
-    type: types.CREATE_TOPIC_DUPLICATE
-  };
-}
-
-// This action creator returns a function,
-// which will get executed by Redux-Thunk middleware
-// This function does not need to be pure, and thus allowed
-// to have side effects, including executing asynchronous API calls.
-export function createTopic(text) {
+// 创建 topic
+export function createTopic(content) {
   return (dispatch, getState) => {
-    // If the text box is empty
-    if (text.trim().length <= 0) return;
-
-    const id = md5.hash(text);
-    // Redux thunk's middleware receives the store methods `dispatch`
-    // and `getState` as parameters
-    const {vote} = getState();
-    const data = {
-      count: 1,
-      id,
-      text
-    };
-
-    // Conditional dispatch
-    // If the topic already exists, make sure we emit a dispatch event
-    if (vote.topics.filter(topicItem => topicItem.id === id).length > 0) {
-      // Currently there is no reducer that changes state for this
-      // For production you would ideally have a message reducer that
-      // notifies the user of a duplicate topic
-      return dispatch(createTopicDuplicate());
+    // 如果为空则返回
+    if (content.trim().length <= 0) {
+      return;
     }
 
+    const state = getState();
+    const vote = state.get('vote');
+
     // First dispatch an optimistic update
-    dispatch(createTopicRequest(data));
+    dispatch(createTopicRequest());
 
-    return makeTopicRequest('post', id, data)
-      .then(res => {
-        if (res.status === 200) {
-          // We can actually dispatch a CREATE_TOPIC_SUCCESS
-          // on success, but I've opted to leave that out
-          // since we already did an optimistic update
-          // We could return res.json();
-          return dispatch(createTopicSuccess());
-        }
-      })
-      .catch(() => {
-        return dispatch(createTopicFailure({
-          id,
-          error: 'Oops! Something went wrong and we couldn\'t create your topic'
-        }));
-      });
+    callApi({
+      url: 'vote/topic', body: {
+        count: 1,
+        content
+      }, options: {
+        method: 'post'
+      }
+    }).then((res) => {
+      return dispatch(createTopicSuccess(res.data));
+    }, (error) => {
+      return dispatch(createTopicFailure(error));
+    });
   };
 }
 
-// Fetch posts logic
+// Fetch all Topic
 export function fetchTopics() {
+  return (dispatch, getState) => {
+
+    dispatch(fetchTopicsRequest());
+
+    callApi({url: 'vote/topics'}).then((res) => {
+      return dispatch(fetchTopicsSuccess(res.data));
+    }, (error) => {
+      return dispatch(fetchTopicsFailure(error));
+    });
+  };
+}
+
+function fetchTopicsRequest() {
   return {
-    type: types.GET_TOPICS,
-    promise: makeTopicRequest('get')
-  };
+    type: types.GET_TOPICS_REQUEST,
+  }
 }
 
+function fetchTopicsSuccess(data) {
+  return {
+    type: types.GET_TOPICS_SUCCESS,
+    data
+  }
+}
 
+function fetchTopicsFailure(error) {
+  return {
+    type: types.GET_TOPICS_FAILURE,
+    error
+  }
+}
+
+//投票
 export function incrementCount(id) {
-  return dispatch => {
-    return makeTopicRequest('put', id, {
-      isFull: false,
-      isIncrement: true
-    })
-      .then(() => dispatch(increment(id)))
-      .catch(() => dispatch(createTopicFailure({
+  return (dispatch, getState) => {
+    callApi({
+      url: 'vote/count', body: {
         id,
-        error: 'Oops! Something went wrong and we couldn\'t add your vote'
-      })));
+        type: 'increment'
+      }, options: {method: 'put'}
+    }).then((res) => {
+      return dispatch({
+        type: types.INCREMENT_COUNT,
+        id
+      });
+    }, (error) => {
+
+    });
   };
 }
 
+//减票
 export function decrementCount(id) {
-  return dispatch => {
-    return makeTopicRequest('put', id, {
-      isFull: false,
-      isIncrement: false
-    })
-      .then(() => dispatch(decrement(id)))
-      .catch(() => dispatch(createTopicFailure({
+  return (dispatch, getState) => {
+    callApi({
+      url: 'vote/count', body: {
         id,
-        error: 'Oops! Something went wrong and we couldn\'t add your vote'
-      })));
+        type: 'decrement'
+      }, options: {method: 'put'}
+    }).then((res) => {
+      return dispatch({
+        type: types.DECREMENT_COUNT,
+        id
+      });
+    }, (error) => {
+
+    });
   };
 }
 
+//删除主题
 export function destroyTopic(id) {
-  return dispatch => {
-    return makeTopicRequest('delete', id)
-      .then(() => dispatch(destroy(id)))
-      .catch(() => dispatch(createTopicFailure({
-        id,
-        error: 'Oops! Something went wrong and we couldn\'t add your vote'
-      })));
+  return (dispatch, getState) => {
+    callApi({
+      url: `vote/topic/${id}`,
+      options: {method: 'delete'}
+    }).then((res) => {
+      return dispatch({
+        type: types.DESTROY_TOPIC,
+        id
+      });
+    }, (error) => {
+
+    });
   };
 }

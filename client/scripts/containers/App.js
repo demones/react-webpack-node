@@ -3,6 +3,7 @@ import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import Nav from '../components/Nav'
 import * as indexActions from '../actions/index';
+import * as cacheActions from '../actions/cache';
 import classNames from 'classnames/bind';
 import styles from '../../sass/main';
 
@@ -13,6 +14,7 @@ class App extends Component {
   static propTypes = {
     children: PropTypes.node,
     location: PropTypes.object,
+    toast: PropTypes.object,
     indexActions: PropTypes.object,
   };
 
@@ -33,10 +35,9 @@ class App extends Component {
       this.toastTimeoutId = setTimeout(() => {
         indexActions.clearToast();
         this.toastTimeoutId = null;
-      }, 1500);
+      }, 3000);
     }
   }
-
 
   // toast 组件
   renderToast() {
@@ -62,6 +63,7 @@ class App extends Component {
       <div className={cx('main')}>
         {this.renderToast()}
         <Nav />
+        <hr/>
         {children && React.cloneElement(children, {
           key: location.pathname,
           indexActions
@@ -73,13 +75,15 @@ class App extends Component {
 
 function mapStateToProps(state, ownProps) {
   return {
-    toast: state.get('toast')
+    toast: state.get('toast'),
+    cache: state.get('cache'),
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    indexActions: bindActionCreators(indexActions, dispatch)
+    indexActions: bindActionCreators(indexActions, dispatch),
+    cacheActions: bindActionCreators(cacheActions, dispatch),
   }
 }
 

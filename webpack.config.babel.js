@@ -1,20 +1,17 @@
-import path from 'path';
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 
-const appPath = path.join(__dirname, '..', 'client');
-
 export default {
-  output: {
-    publicPath: '/',
-    libraryTarget: 'commonjs2',
-  },
   resolve: {
     extensions: ['', '.js', '.jsx', '.css', '.scss'],
     modules: [
       'client',
       'node_modules',
     ],
+  },
+  output: {
+    publicPath: '/',
+    libraryTarget: 'commonjs2',
   },
   module: {
     loaders: [
@@ -24,18 +21,16 @@ export default {
       },
       {
         test: /\.scss$/,
-        loader: 'style-loader!css-loader?sourceMap!postcss-loader?pack=cleaner!sass-loader',
-        include: path.join(appPath, 'sass', 'components', 'react-animation.scss'),
-      },
-      {
-        test: /\.scss$/,
         loader: 'style-loader!css-loader?modules&localIdentName=[name]__[local]__[hash:base64:5]&sourceMap!postcss-loader?pack=cleaner!sass-loader',
-        exclude: path.join(appPath, 'sass', 'components', 'react-animation.scss'),
       },
       {
-        test: /\.jpe?g$|\.gif$|\.png$|\.svg$/i,
-        loader: 'url-loader?limit=10000'
-      },
+        test: /\.(png|jpg|jpeg|gif|svg|woff|woff2)$/,
+        loader: 'url',
+        query: {
+          name: '[hash].[ext]',
+          limit: 10000, // 10kb
+        }
+      }
     ],
   },
   postcss: () => {

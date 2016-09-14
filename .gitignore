@@ -1,8 +1,12 @@
 .idea
 node_modules
+dist
+client/dist
+zip
 
 # 一些不需要提交的 js 文件
 client/scripts/config/index.js
 client/scripts/containers/Root.js
 client/scripts/store/index.js
+dev
 

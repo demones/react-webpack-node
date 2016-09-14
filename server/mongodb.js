@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import mongoose from 'mongoose';
 import config from './config';
 
@@ -9,6 +7,7 @@ import config from './config';
  * */
 export default () => {
   //选项
+  /*eslint-disable camelcase*/
   const options = {
     db: {native_parser: true},
     server: {poolSize: 5}// 创建连接池
@@ -35,10 +34,4 @@ export default () => {
 
   //链接被中断后，重新链接
   mongoose.connection.on('disconnected', connect);
-
-  // Register schema as mongoose model
-  /*const modelPath = path.join(__dirname, 'models');
-   fs.readdirSync(modelPath).forEach((file) => {
-   if (~file.indexOf('.js')) require(`${modelPath}/${file}`);
-   });*/
 };

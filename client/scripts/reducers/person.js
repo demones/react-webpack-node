@@ -2,7 +2,8 @@ import process from './process';
 import * as PersonActionTypes from '../constants/PersonActionTypes';
 
 const {
-  PERSON_REQUEST, PERSON_SUCCESS, PERSON_FAILURE, PERSON_CLEAN, PERSON_UPDATE, PERSON_DELETE
+  PERSON_REQUEST, PERSON_SUCCESS, PERSON_FAILURE,
+  PERSON_CLEAN, PERSON_UPDATE, PERSON_DELETE, PERSON_ADD
 } = PersonActionTypes;
 
 /**
@@ -17,27 +18,29 @@ const person = process({
   },
   customTypes: {
     [PERSON_UPDATE]: (state, action) => {
-      /*let {ids, entity} = state;
-       const _entity = assign({}, entity);
-       _entity[action.person.id] = assign({}, action.person, action.person);
-
-       const _state = assign({}, state, {
-       ids: assign([], ids),
-       entity
-       });*/
-      return state;
+      const {person} = action;
+      return state.updateIn(['entities', 'items'], (items) => {
+        return items.map((item) => {
+          if (item.get('_id') === person.get('_id')) {
+            return person;
+          } else {
+            return item;
+          }
+        })
+      });
     },
     [PERSON_DELETE]: (state, action) => {
-      /*let {ids, entity} = state;
-       const _entity = assign({}, entity);
-       delete _entity[action.id];
-
-       const _state = assign({}, state, {
-       ids: ids.filter((person) => person !== action.id),
-       entity: _entity
-       });*/
-      return state;
-    }
+      const {_id} = action;
+      return state.updateIn(['entities', 'items'], (items) => {
+        return items.filter(item => item.get('_id') !== _id);
+      });
+    },
+    [PERSON_ADD]: (state, action) => {
+      const {person} = action;
+      return state.updateIn(['entities', 'items'], (items) => {
+        return items.unshift(person);
+      });
+    },
   }
 });
 

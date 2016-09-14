@@ -1,7 +1,18 @@
 import React, {Component, PropTypes} from 'react';
+import Immutable from 'immutable';
 import callApi from '../../utils/fetch';
+import bootstrap from '../../bootstrapCss';
 
 class PersonForm extends Component {
+
+  static contextTypes = {
+    router: PropTypes.object.isRequired
+  };
+
+  static propTypes = {
+    personActions: PropTypes.object,
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -10,58 +21,62 @@ class PersonForm extends Component {
     };
   }
 
-  addPerson() {
+  addPerson = () => {
     const {firstName, lastName} = this.state;
-    const person = {
-      firstName,
-      lastName
-    };
-
-    const url = 'path/person/create';
-    const options = {body: {person}};
+    const url = 'person';
 
     //这里没有走 action, 直接发送 fetch 请求,对于不需要维护状态的请求,我们也可以直接调用 fetch
-    callApi({url, options}).then(
-      ({json, response}) => {
-        if (json && json.success) {
-          this.context.router.goBack();
-        }
+    callApi({
+      url, body: {
+        firstName,
+        lastName
+      }, options: {
+        method: 'post'
+      }
+    }).then(
+      (json) => {
+        this.props.personActions.addPerson(Immutable.fromJS(json.data));
+        this.context.router.goBack();
       },
       (error) => {
-        this.context.router.goBack();
+
       }
     );
-  }
+  };
 
-  handleChange(field, event) {
-    const val = event.target.value;
-    this.setState({
-      [field]: val
-    });
-  }
+  handleChange = (field) => {
+    return (event) => {
+      const val = event.target.value;
+      this.setState({
+        [field]: val
+      });
+    };
+  };
 
   render() {
     const {firstName, lastName} = this.state;
     return (
       <form>
-        <div className="form-group row">
-          <label className="col-sm-2 form-control-label">First Name</label>
-          <div className="col-sm-4">
-            <input type="text" className="form-control" placeholder="First Name"
-                   value={firstName} onChange={this.handleChange.bind(this, 'firstName')}/>
+        <div className={bootstrap('form-group', 'row')}>
+          <label className={bootstrap('col-sm-2', 'form-control-label')}>First Name</label>
+          <div className={bootstrap('col-sm-4')}>
+            <input type="text" className={bootstrap('form-control')} placeholder="First Name"
+                   value={firstName} onChange={this.handleChange('firstName')}/>
           </div>
         </div>
 
-        <div className="form-group row">
-          <label className="col-sm-2 form-control-label">Last Name</label>
-          <div className="col-sm-4">
-            <input type="text" className="form-control" placeholder="Last Name"
-                   value={lastName} onChange={this.handleChange.bind(this, 'lastName')}/>
+        <div className={bootstrap('form-group', 'row')}>
+          <label className={bootstrap('col-sm-2', 'form-control-label')}>Last Name</label>
+          <div className={bootstrap('col-sm-4')}>
+            <input type="text" className={bootstrap('form-control')} placeholder="Last Name"
+                   value={lastName} onChange={this.handleChange('lastName')}/>
           </div>
         </div>
-        <div className="form-group row">
-          <div className="col-sm-offset-2 col-sm-4">
-            <button type="button" className="btn btn-secondary" onClick={() => this.addPerson()}>Save</button>
+        <div className={bootstrap('form-group', 'row')}>
+          <div className={bootstrap('col-sm-offset-2', 'col-sm-4')}>
+            <button type="button" className={bootstrap('btn', 'btn-primary')}
+                    onClick={this.addPerson}>Save
+            </button>
           </div>
         </div>
       </form>
@@ -69,8 +84,5 @@ class PersonForm extends Component {
   }
 }
 
-PersonForm.contextTypes = {
-  router: PropTypes.object.isRequired
-};
 
 export default PersonForm;

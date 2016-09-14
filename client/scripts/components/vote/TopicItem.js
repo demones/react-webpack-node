@@ -1,10 +1,10 @@
-import React, { PropTypes } from 'react';
+import React, {PropTypes} from 'react';
 import classNames from 'classnames/bind';
-import styles from '../../styles/components/topic-item';
+import styles from '../../../sass/modules/vote/topic-item';
 
 const cx = classNames.bind(styles);
 
-const TopicItem = ({ text, id, incrementCount, decrementCount, destroyTopic }) => {
+const TopicItem = ({content, id, incrementCount, decrementCount, destroyTopic}) => {
   const onIncrement = () => {
     incrementCount(id);
   };
@@ -17,13 +17,15 @@ const TopicItem = ({ text, id, incrementCount, decrementCount, destroyTopic }) =
 
   return (
     <li className={cx('topic-item')} key={id}>
-      <span className={cx('topic')}>{text}</span>
+      <span className={cx('topic')}>{content}</span>
       <button
         className={cx('button', 'increment')}
-        onClick={onIncrement}>+</button>
+        onClick={onIncrement}>+
+      </button>
       <button
         className={cx('button', 'decrement')}
-        onClick={onDecrement}>-</button>
+        onClick={onDecrement}>-
+      </button>
       <button
         className={cx('button', 'destroy')}
         onClick={onDestroy}>{String.fromCharCode(215)}</button>
@@ -32,7 +34,7 @@ const TopicItem = ({ text, id, incrementCount, decrementCount, destroyTopic }) =
 };
 
 TopicItem.propTypes = {
-  text: PropTypes.string.isRequired,
+  content: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,
   incrementCount: PropTypes.func.isRequired,
   decrementCount: PropTypes.func.isRequired,

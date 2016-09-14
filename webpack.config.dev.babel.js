@@ -5,49 +5,43 @@ import styleLintPlugin from 'stylelint-webpack-plugin';
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 
-const appPath = path.join(__dirname, '..', 'client');
-const nodeModulesPath = path.join(__dirname, '..', 'node_modules');
-const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=5000&reload=true';
+const appPath = path.join(__dirname, 'client');
+const nodeModulesPath = path.join(__dirname, 'node_modules');
 
 const webpackConfig = {
-  // eslint 配置
-  eslint: {
-    emitError: true, // 验证失败，终止
-    configFile: '.eslintrc'
-  },
-  cache: true, //开启缓存，增量编译
-  debug: true, //开启 debug 模式
-  devtool: 'source-map', //生成 source map文件
-  stats: {
-    colors: true, //打印日志显示颜色
-    reasons: true //打印相关被引入的模块
-  },
+  noInfo: true,
+  devtool: 'cheap-module-eval-source-map', //生成 source map文件
   resolve: {
-    root: [appPath],  // 设置要加载模块根路径，该路径必须是绝对路径
     //自动扩展文件后缀名
-    extensions: ['', '.js', '.jsx', '.css', '.scss', '.json'],
-    alias: {} //设置别名
+    extensions: ['', '.js', '.jsx', '.css', '.scss'],
+    modules: [
+      'client',
+      'node_modules',
+    ],
   },
   // 入口文件 让webpack用哪个文件作为项目的入口，可以设置多个
   // Multiple entry with hot loader
   // https://github.com/glenjamin/webpack-hot-middleware/blob/master/example/webpack.config.multientry.js
   entry: {
-    //以 context 为基准
-    index: ['./client/scripts/index.js', hotMiddlewareScript]
+    index: [
+      'webpack-hot-middleware/client',
+      'webpack/hot/only-dev-server',
+      'react-hot-loader/patch',
+      './client/scripts/index.js',
+    ]
   },
 
   // 出口 让webpack把处理完成的文件放在哪里
   output: {
     // The output directory as absolute path
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname, 'dev'),
     // The filename of the entry chunk as relative path inside the output.path directory
-    filename: 'bundle.js', //文件名称
+    filename: '[name].js', //文件名称
     // The output path from the view of the Javascript
-    publicPath: '/__build__/'
+    publicPath: '/dev/'
   },
 
   module: {
-    noParse: [], //设置不解析的文件
     // https://github.com/MoOx/eslint-loader
     preLoaders: [{
       test: /\.jsx?$/,
@@ -81,13 +75,7 @@ const webpackConfig = {
       },
       {
         test: /\.scss$/,
-        loader: 'style-loader!css-loader?sourceMap!postcss-loader?pack=cleaner!sass-loader',
-        include: path.join(appPath, 'sass', 'components', 'react-animation.scss'),
-      },
-      {
-        test: /\.scss$/,
         loader: 'style-loader!css-loader?modules&localIdentName=[name]__[local]__[hash:base64:5]&sourceMap!postcss-loader?pack=cleaner!sass-loader',
-        exclude: path.join(appPath, 'sass', 'components', 'react-animation.scss'),
       }
     ]
   },
@@ -95,10 +83,23 @@ const webpackConfig = {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
+    new webpack.DefinePlugin({
+      'process.env': {
+        CLIENT: JSON.stringify(true),
+        'NODE_ENV': JSON.stringify('development'),
+      }
+    }),
+    new webpack.DllReferencePlugin({
+      context: __dirname,
+      /**
+       * 在这里引入 manifest 文件
+       */
+      manifest: require('./dev/vendor-manifest.json')
+    }),
     new styleLintPlugin({
-      configFile: path.join(__dirname, '..', '.stylelintrc'),
-      context: path.join(__dirname, '..', 'client', 'sass'),
-      files: '**!/!*.?scss'
+      configFile: path.join(__dirname, '.stylelintrc'),
+      context: path.join(__dirname, 'client', 'sass'),
+      files: '**/*.scss'
     })
   ],
   postcss: () => {
@@ -106,6 +107,11 @@ const webpackConfig = {
       defaults: [precss, autoprefixer],
       cleaner: [autoprefixer({browsers: ['last 2 version', 'chrome >=30', 'Android >= 4.3', 'IOS >= 8']})]
     }
+  },
+  // eslint 配置
+  eslint: {
+    emitError: true, // 验证失败，终止
+    configFile: '.eslintrc'
   },
 };
 

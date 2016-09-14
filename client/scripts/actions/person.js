@@ -1,10 +1,10 @@
 import {
   PERSON_REQUEST, PERSON_SUCCESS, PERSON_FAILURE, PERSON_CLEAN,
-  PERSON_UPDATE, PERSON_DELETE
+  PERSON_UPDATE, PERSON_DELETE, PERSON_ADD
 } from '../constants/PersonActionTypes';
 import {CALL_API} from '../middlewares/api';
 
-function fetchPersonList(currentPage) {
+function fetchPersonList(currentPage, clean) {
   return {
     [CALL_API]: {
       types: {
@@ -13,34 +13,33 @@ function fetchPersonList(currentPage) {
         failure: PERSON_FAILURE
       },
       url: `person/list?currentPage=${currentPage}`,
+      clean
     }
   };
 }
 
 //获取 person 分页列表
-export function getPersonList() {
+export function getPersonList(clean) {
   return (dispatch, getState) => {
     const person = getState().get('person');
     const isFetching = person.get('isFetching');
     const entities = person.get('entities');
     //请求页码
-    const currentPage = entities ? entities.get('currentPage') + 1 : 1;
+    const currentPage = clean === true || !entities ? 1 : entities.get('currentPage') + 1;
     //最后一页
-    const lastPage = entities ? entities.get('lastPage') : false;
+    const lastPage = clean === true || !entities ? false : entities.get('lastPage');
 
     if (isFetching || lastPage) {
       return null;
     }
-    return dispatch(fetchPersonList(currentPage));
+    return dispatch(fetchPersonList(currentPage, clean));
   };
 }
 
 //清空数据
 export function cleanPersonList() {
   return {
-    type: PERSON_CLEAN,
-    entity: 'personPagination',
-    clean: true
+    type: PERSON_CLEAN
   }
 }
 
@@ -53,10 +52,17 @@ export function updatePerson(person) {
 }
 
 //删除
-export function deletePerson(id) {
+export function deletePerson(_id) {
   return {
     type: PERSON_DELETE,
-    id
+    _id
   };
 }
 
+//添加一列
+export function addPerson(person) {
+  return {
+    type: PERSON_ADD,
+    person
+  };
+}

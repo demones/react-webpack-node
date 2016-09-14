@@ -4,14 +4,20 @@ import classNames from 'classnames/bind';
 import PersonItem from './PersonItem';
 import bootstrap from '../../bootstrapCss';
 import style from '../../../sass/modules/person'
+//图片
+import noItems from '../../../images/no_items.png';
 
 const cx = classNames.bind(style);
 
 class PersonList extends Component {
-  constructor(props){
+  static propTypes = {
+    personActions: PropTypes.object,
+    person: PropTypes.object,
+  };
+
+  constructor(props) {
     super(props);
     this.loadMore = this.loadMore.bind(this);
-    this.refresh = this.refresh.bind(this);
   }
 
   componentDidMount() {
@@ -20,8 +26,12 @@ class PersonList extends Component {
     // const {dispatch} = this.props;
     // dispatch(getPersonList());
     // 直接用以下方式处理，效果和上面是一样的
-    const {personActions} = this.props;
-    personActions.getPersonList();
+    const {personActions, person} = this.props;
+    // 如果第一次需加载列表
+    const entities = person.get('entities');
+    if (!entities) {
+      personActions.getPersonList();
+    }
   }
 
   loadMore() {
@@ -34,13 +44,13 @@ class PersonList extends Component {
     }
   }
 
-  refresh() {
+  //箭头函数写法，这样不用绑定 this
+  refresh = (e) => {
     const {personActions} = this.props;
-    personActions.cleanPersonList();
-    personActions.getPersonList();
+    personActions.getPersonList(true);
   }
 
-  render() {
+  renderList() {
     const {person, personActions} = this.props;
     const isFetching = person.get('isFetching');
     const entities = person.get('entities');
@@ -56,54 +66,57 @@ class PersonList extends Component {
 
     if (items.size === 0) {
       return (
-        <div>
-          <p>无记录</p>
+        <div className={bootstrap('m-t-3')}>
+          <img className={cx('no-items')} src={noItems}/>
+          <p className={bootstrap('m-t-2', 'text-xs-center', 'text-muted')}>暂无记录</p>
         </div>
       );
     }
 
     return (
       <div>
-        <div className="m-b-1">
-          <Link className="btn btn-primary" to="/example/person/create">Add Person</Link>
-        </div>
-
-        <table className="table">
-          <thead className="thead-inverse">
+        <table className={bootstrap('table')}>
+          <thead className={bootstrap('thead-inverse')}>
           <tr>
             <th>#</th>
             <th>First Name</th>
             <th>Last Name</th>
             <th>Username</th>
-            <th></th>
+            <th/>
           </tr>
           </thead>
           <tbody>
           {
             items ? items.map((person) => {
               return (
-                <PersonItem key={person.get('id')} person={person} personActions={personActions}/>
+                <PersonItem key={person.get('_id')} person={person} personActions={personActions}/>
               );
             }) : null
           }
           </tbody>
         </table>
-        <div className="examples-btn-group">
-          <button type="button" className="btn btn-primary" disabled={lastPage}
-                  onTouchTap={this.loadMore}>Load More
+        <div className={cx('person-btn-group')}>
+          <button type="button" className={bootstrap('btn', 'btn-primary')} disabled={lastPage}
+                  onClick={this.loadMore}>Load More
           </button>
-          <button type="button" className="btn btn-info"
-                  onTouchTap={this.refresh}>Refresh
+          <button type="button" className={bootstrap('btn', 'btn-info')}
+                  onClick={this.refresh}>Refresh
           </button>
         </div>
       </div>
     );
   }
-}
 
-PersonList.propTypes = {
-  personActions: PropTypes.object,
-  person: PropTypes.object,
-};
+  render() {
+    return (
+      <div>
+        <div className={bootstrap('m-b-1')}>
+          <Link className={bootstrap('btn', 'btn-primary')} to="/person/create">Add Person</Link>
+        </div>
+        {this.renderList()}
+      </div>
+    );
+  }
+}
 
 export default PersonList;

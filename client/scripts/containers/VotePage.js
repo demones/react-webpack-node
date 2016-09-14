@@ -1,54 +1,14 @@
-import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux';
-import classNames from 'classnames/bind';
-import EntryBox from '../components/vote/EntryBox';
-import MainSection from '../components/vote/MainSection';
-import Scoreboard from '../components/vote/Scoreboard';
 import {
-  createTopic, typing, incrementCount,
-  decrementCount, destroyTopic, fetchTopics
+  fetchTopics, createTopic, enterTopic, incrementCount,
+  decrementCount, destroyTopic
 } from '../actions/vote';
-import styles from '../styles/components/vote';
-
-const cx = classNames.bind(styles);
-
-class Vote extends Component {
-
-  //Data that needs to be called before rendering the component
-  //This is used for server side rending via the fetchComponentDataBeforeRender() method
-  static need = [  // eslint-disable-line
-    fetchTopics
-  ]
-
-  render() {
-    const {newTopic, topics, typing, createTopic, destroyTopic, incrementCount, decrementCount} = this.props;
-    return (
-      <div className={cx('vote')}>
-        <EntryBox topic={newTopic}
-                  onEntryChange={typing}
-                  onEntrySave={createTopic}/>
-        <MainSection topics={topics}
-                     onIncrement={incrementCount}
-                     onDecrement={decrementCount}
-                     onDestroy={destroyTopic}/>
-        <Scoreboard topics={topics}/>
-      </div>
-    );
-  }
-}
-
-Vote.propTypes = {
-  topics: PropTypes.array.isRequired,
-  typing: PropTypes.func.isRequired,
-  createTopic: PropTypes.func.isRequired,
-  destroyTopic: PropTypes.func.isRequired,
-  incrementCount: PropTypes.func.isRequired,
-  decrementCount: PropTypes.func.isRequired,
-  newTopic: PropTypes.string
-};
+import Vote from '../components/vote/Vote';
 
 function mapStateToProps(state) {
-  const {topics, newTopic} = state.vote;
+  const vote = state.get('vote');
+  const topics = vote.get('topics');
+  const newTopic = vote.get('newTopic');
   return {
     topics,
     newTopic
@@ -56,8 +16,9 @@ function mapStateToProps(state) {
 }
 
 export default connect(mapStateToProps, {
+  fetchTopics,
   createTopic,
-  typing,
+  enterTopic,
   incrementCount,
   decrementCount,
   destroyTopic

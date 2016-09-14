@@ -1,0 +1,32 @@
+.topic-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.topic {
+  flex: 0 1 200px;
+  font-size: 16px;
+}
+
+.button {
+  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  margin: 0 28px;
+  color: #fff;
+}
+
+.increment {
+  background-color: #88C100;
+}
+
+.decrement {
+  background-color: #0b6e3e;
+}
+
+.destroy {
+  background-color: #db4437;
+}
+
