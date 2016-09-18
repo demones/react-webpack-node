@@ -1,6 +1,7 @@
 import React, {Component, PropTypes} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
+import Helmet from 'react-helmet';
 import Nav from '../components/Nav'
 import * as indexActions from '../actions/index';
 import * as cacheActions from '../actions/cache';
@@ -61,6 +62,41 @@ class App extends Component {
 
     return (
       <div className={cx('main')}>
+        <Helmet
+          title="React Webpack Node - Example App"
+          titleTemplate="%s - React Webpack Node - Example App"
+          meta={[
+            { charset: 'UTF-8' },
+            {
+              'http-equiv': 'Cache-Control',
+              content: 'no-cache',
+            },
+            {
+              'http-equiv': 'Pragma',
+              content: 'no-cache',
+            },
+            {
+              'http-equiv': 'Expires',
+              content: '0',
+            },
+            {
+              name: 'keywords',
+              content: 'React Webpack Node',
+            },
+            {
+              name: 'description',
+              content: 'React Webpack Node',
+            },
+            {
+              'http-equiv': 'X-UA-Compatible',
+              content: 'IE=edge',
+            },
+            {
+              name: 'viewport',
+              content: 'width=device-width, initial-scale=1,user-scalable=no',
+            }
+          ]}
+        />
         {this.renderToast()}
         <Nav />
         <hr/>

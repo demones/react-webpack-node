@@ -1,6 +1,5 @@
 import path from 'path';
 import express from 'express';
-import favicon from 'serve-favicon';
 import webpack from 'webpack'
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -15,15 +14,15 @@ import {Provider} from 'react-redux'
 import {createMemoryHistory, match, RouterContext} from 'react-router'
 import {syncHistoryWithStore} from 'react-router-redux'
 
-import mongodb from './mongodb';
-import config from './config';
-import routes from './routes';
-import sessionStore from './session-store';
+import mongodb from './server/mongodb';
+import config from './server/config';
+import routes from './server/routes';
+import sessionStore from './server/session-store';
 
-import configureStore from '../client/scripts/store'
-import createRoutes from '../client/scripts/routes'
-import createSelectLocationState from '../client/scripts/routes/createSelectLocationState';
-import {IP, PORT} from '../client/scripts/config';
+import configureStore from './client/scripts/store'
+import createRoutes from './client/scripts/routes'
+import createSelectLocationState from './client/scripts/routes/createSelectLocationState';
+import {IP, PORT} from './client/scripts/config';
 
 const app = express();
 
@@ -32,10 +31,10 @@ mongodb();
 
 // 开发环境开启热部署
 if (config.env === 'development') {
-  const webpackDevConfig = require('../webpack.config.dev.babel');
+  const webpackDevConfig = require('./webpack.config.dev.babel');
   const compiler = webpack(webpackDevConfig);
   app.use(require('webpack-dev-middleware')(compiler, {
-    //noInfo: true, //如果设置该参数为 true，则不打印输出信息
+    noInfo: true, //如果设置该参数为 true，则不打印输出信息
     cache: true, //开启缓存，增量编译
     debug: true, //开启 debug 模式
     stats: {
@@ -51,17 +50,13 @@ if (config.env === 'development') {
 // express setting
 if (config.env === 'production') {
   app.use(gzip());
-  app.use(favicon(path.join(__dirname, 'favicon.ico')));
-} else {
-  // uncomment after placing your favicon in /public
-  app.use(favicon(path.join(__dirname, '..', 'client', 'favicon.ico')));
 }
 
 app.use(logger('dev'));
 app.use(bodyParser.json({limit: '20mb'}));//设置前端post提交最大内容
 app.use(bodyParser.urlencoded({limit: '20mb', extended: false}));
 app.use(cookieParser(config.cookieSecret));
-app.use(express.static(path.resolve(__dirname, '../dist')));
+app.use(express.static(config.env === 'development' ? path.resolve(__dirname, './dev') : path.resolve(__dirname, './client')));
 
 // 设置 session
 const store = sessionStore();
@@ -103,17 +98,20 @@ const Html = ({content, store}) => {
 
       ${config.env === 'production' ? `<link rel='stylesheet' href='${assetsManifest['/index.bootstrap.css']}' />` : ''}
       ${config.env === 'production' ? `<link rel='stylesheet' href='${assetsManifest['/index.css']}' />` : ''}
+      <link rel="icon" type="image/x-icon" href="/favicon.ico">
+      <link rel="apple-touch-icon" href="/favicon.ico">
    `;
 
+  //设置 manifest 为不存在的文件，防止部分浏览器缓存
   return (
-    <html>
+    <html manifest="IGNORE.manifest">
     <head dangerouslySetInnerHTML={{ __html: headHtml }}/>
     <body>
     <div id="layout" dangerouslySetInnerHTML={{ __html: content }}/>
     <div id="devtools"/>
     <script dangerouslySetInnerHTML={{ __html: scriptHtml }}/>
-    {config.env === 'development' ? (<script src="/vendor.dll.js"/>) : (
-      <script src="/dev/vendor.js"/>
+    {config.env === 'production' ? (<script src={assetsManifest['/vendor.js']}/>) : (
+      <script src="/vendor.dll.js"/>
     )}
     <script src={config.env === 'production' ? assetsManifest['/index.js'] : '/dev/index.js'}/>
     </body>

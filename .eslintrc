@@ -307,7 +307,7 @@
     "react/jsx-uses-vars": 2, //jsx组件被定义而没有被调用
     "react/jsx-wrap-multilines": 2 //多行 jsx 表达式应该用 () 包裹起来
 
-    // eslint-plugin-flow-vars rules https://github.com/gajus/eslint-plugin-flowtype
+    // eslint-plugin-flow-vars rule
     //"flowtype/boolean-style": 2,
     //"flowtype/define-flow-type": 2
   },

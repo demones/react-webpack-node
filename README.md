@@ -29,7 +29,7 @@ gulp server
 ### start prod server 
 
 ```
-gulp server:prod
+cd dist && npm start
 ```
 
 Note: At first, You need to exec 'gulp build' to generate the prod code. 

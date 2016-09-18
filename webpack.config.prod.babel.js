@@ -5,8 +5,6 @@ import ManifestPlugin from './webpack-plugins/ManifestPlugin';
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 
-const appPath = path.join(__dirname, 'client');
-
 // multiple extract instances
 const extractSCSS = new ExtractTextPlugin({filename: 'css/[name].[chunkhash].css', allChunks: true});
 const extractCSS = new ExtractTextPlugin({filename: 'css/[name].bootstrap.[chunkhash].css', allChunks: true});
@@ -26,7 +24,7 @@ export default {
   },
 
   output: {
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname, 'dist', 'client'),
     filename: '[name].[chunkhash].js',
     publicPath: '/',
   },
@@ -44,7 +42,6 @@ export default {
       {
         test: /\.jsx?$/,
         loader: 'babel-loader',
-        include: appPath,
         exclude: /node_modules/,
       },
 
@@ -70,6 +67,9 @@ export default {
           fallbackLoader: 'style-loader',
           loader: 'css-loader?modules&localIdentName=[hash:base64]!postcss-loader?pack=cleaner!sass-loader'
         })
+      }, {
+        test: /\.json$/,
+        loader: 'json-loader',
       },
     ],
   },

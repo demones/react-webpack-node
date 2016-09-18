@@ -4,10 +4,10 @@ const nodeModulesPath = path.join(__dirname, 'node_modules');
 
 export default {
 
-  entry: './server/index.js',
+  entry: './server.js',
 
   output: {
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname, 'dist', 'server'),
     filename: 'server.bundle.js',
     libraryTarget: 'commonjs'
   },
@@ -49,7 +49,10 @@ export default {
             ]
           ]
         },
-      }
+      }, {
+        test: /\.json$/,
+        loader: 'json-loader',
+      },
     ],
   },
   plugins: [

@@ -9,7 +9,8 @@ const appPath = path.join(__dirname, 'client');
 const nodeModulesPath = path.join(__dirname, 'node_modules');
 
 const webpackConfig = {
-  noInfo: true,
+  cache: true, //开启缓存，增量编译
+  debug: true, //开启 debug 模式
   devtool: 'cheap-module-eval-source-map', //生成 source map文件
   resolve: {
     //自动扩展文件后缀名
@@ -76,7 +77,10 @@ const webpackConfig = {
       {
         test: /\.scss$/,
         loader: 'style-loader!css-loader?modules&localIdentName=[name]__[local]__[hash:base64:5]&sourceMap!postcss-loader?pack=cleaner!sass-loader',
-      }
+      }, {
+        test: /\.json$/,
+        loader: 'json-loader',
+      },
     ]
   },
 

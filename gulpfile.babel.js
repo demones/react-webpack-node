@@ -3,6 +3,10 @@ import gulp from 'gulp';
 import gulpLoadPlugins from 'gulp-load-plugins';
 import opn from 'opn';
 import childProcess from 'child_process';
+import moment from 'moment';
+import md5File from 'md5-file';
+import chalk from 'chalk';
+import filePackage from 'file-package';
 import {IP, PORT} from './client/scripts/config';
 import clientConfig from './webpack.config.prod.babel';
 import serverConfig from './webpack.config.server.babel';
@@ -20,6 +24,7 @@ gulp.task('copy:dev', () => {
     {src: 'client/scripts/config/index.dev.js', dest: 'client/scripts/config/index.js'},
     {src: 'client/scripts/store/configureStore.dev.js', dest: 'client/scripts/store/index.js'},
     {src: 'client/scripts/containers/Root.dev.js', dest: 'client/scripts/containers/Root.js'},
+    {src: 'client/favicon.ico', dest: 'dev/favicon.ico'},
   ];
   return $.copy2(paths);
 });
@@ -30,7 +35,9 @@ gulp.task('copy:prod', () => {
     {src: 'client/scripts/config/index.prod.js', dest: 'client/scripts/config/index.js'},
     {src: 'client/scripts/store/configureStore.prod.js', dest: 'client/scripts/store/index.js'},
     {src: 'client/scripts/containers/Root.prod.js', dest: 'client/scripts/containers/Root.js'},
-    {src: 'client/favicon.ico', dest: 'dist/favicon.ico'},
+    {src: 'client/favicon.ico', dest: 'dist/client/favicon.ico'},
+    {src: 'publish/index.js', dest: 'dist/index.js'},
+    {src: 'publish/package.json', dest: 'dist/package.json'}
   ];
   return $.copy2(paths);
 });
@@ -77,11 +84,36 @@ gulp.task('server', ['copy:dev'], () => {
   gulp.watch(['client/config/index.dev.js', 'client/containers/Root.dev.js', 'client/store/configureStore.dev.js'], ['copy:dev']);
 });
 
-// 线上的服务
-gulp.task('server:prod', () => {
-  exec('npm run start:prod');
+// 计算文件大小
+gulp.task('size', () => {
+  return gulp.src('dist/**/*').pipe($.size({title: '文件大小：', gzip: true}));
 });
 
+/**
+ * 压缩
+ * 文件名格式（根据需要自定义）： filename-YYYYMMDDTHHmm
+ * 由于 gulp 压缩插件 gulp-zip 不能指定 package Root, 故采用 file-package 来压缩打包
+ */
+const filePath = `filename-${moment().format('YYYYMMDDTHHmm')}`;
+const fileName = `${filePath}.zip`;
+gulp.task('zip', () => {
+  filePackage('dist', `zip/${fileName}`, {
+    packageRoot: filePath
+  });
+});
+
+// 打包，生成压缩后文件 md5
+gulp.task('package', ['size', 'zip'], () => {
+  md5File(`zip/${fileName}`, (error, md5) => {
+    if (error) {
+      return console.log(error);
+    }
+    console.log(chalk.green('生成的压缩文件为'));
+    console.log(chalk.magenta(fileName));
+    console.log(chalk.green('生成的 md5 为'));
+    console.log(chalk.magenta(md5));
+  })
+});
 
 // 编译打包 client
 gulp.task('build:client', () => {
@@ -108,15 +140,21 @@ gulp.task('build:server', () => {
     $.util.log('[webpack:server]', stats.toString({
       colors: true
     }));
+
+    gulp.start(['package']);
   });
 });
 
 // 编译打包
-gulp.task('build', ['clean', 'copy:prod'], () => {
+gulp.task('clean-after', ['copy:prod'], () => {
   exec('npm run env:prod', (err, stdout, stderr) => {
     gulp.start('build:client');
     gulp.start('build:server');
   });
+});
+
+gulp.task('build', ['clean'], () => {
+  gulp.start('clean-after');
 });
 
 
