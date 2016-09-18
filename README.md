@@ -26,6 +26,12 @@ gulp dll
 gulp server
 ```
 
+Note: At first, You need to connect mongodb. You may exec the following command.
+
+```
+mongod --dbpath /Users/xxx/mongodb 
+```
+
 ### start prod server 
 
 ```
