@@ -1,4 +1,5 @@
 import React, {PropTypes} from 'react';
+import {render} from 'react-dom'
 import {Provider} from 'react-redux';
 import {Router, browserHistory} from 'react-router';
 import {syncHistoryWithStore} from 'react-router-redux'
@@ -7,18 +8,16 @@ import createRoutes from '../routes';
 import configureStore from '../store'
 import createSelectLocationState from '../routes/createSelectLocationState';
 
-// 路由转换配置
-// Read more https://github.com/rackt/react-router/blob/latest/docs/Glossary.md#routeconfig
+import DevTools from './DevTools';
+import Perf from 'react-addons-perf';
 
 const store = configureStore(browserHistory, Immutable.fromJS(window.__initialState__ || {}));
+
 const history = syncHistoryWithStore(browserHistory, store, {
   selectLocationState: createSelectLocationState()
 });
 
-/**
- * 也可以写成以下形式
- * <Router history={history}>{routes}</Router>
- */
+
 const Root = () => {
   const routes = createRoutes(store);
   return (
@@ -31,3 +30,20 @@ const Root = () => {
 };
 
 export default Root;
+
+render(
+  <Provider store={store}>
+    <DevTools/>
+  </Provider>,
+  document.getElementById('devtools')
+);
+
+/**
+ * import Perf from 'react-addons-perf';
+ * Perf.start()
+ * Perf.stop()
+ * Perf.printInclusive()
+ */
+if (typeof (window) !== 'undefined') {
+  window.Perf = Perf;
+}
